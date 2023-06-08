@@ -27,9 +27,28 @@
     moveDown: false,
   };
 
+  var caveOpening = {
+    width: 100,
+    height: 50,
+    x: canvas.width / 2 - 50, // Initially positioned in the center
+    y: canvas.height - 50,    // Positioned at the bottom
+  };
+
   function drawPlayer() {
     context.fillStyle = player.color;
     context.fillRect(player.x, player.y, player.width, player.height);
+  }
+
+  function drawWalls() {
+    context.fillStyle = 'gray';
+    // Draw top wall
+    context.fillRect(0, 0, canvas.width, 50);
+    // Draw bottom walls
+    context.fillRect(0, canvas.height - 50, caveOpening.x, 50);
+    context.fillRect(caveOpening.x + caveOpening.width, canvas.height - 50, canvas.width - caveOpening.x - caveOpening.width, 50);
+    // Draw left and right walls
+    context.fillRect(0, 0, 50, canvas.height);
+    context.fillRect(canvas.width - 50, 0, 50, canvas.height);
   }
 
   function updatePlayerPosition() {
@@ -39,10 +58,19 @@
     if (player.moveDown) player.y += player.speed;
 
     // Check for canvas boundaries
-    if (player.x < 0) player.x = 0;
-    if (player.y < 0) player.y = 0;
-    if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-    if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+    if (player.x < 50) player.x = 50;
+    if (player.y < 50) player.y = 50;
+    if (player.x + player.width > canvas.width - 50) player.x = canvas.width - 50 - player.width;
+    if (player.y + player.height > caveOpening.y) {
+      // If player is not within the cave opening at the bottom, block them
+      if (player.x < caveOpening.x || player.x + player.width > caveOpening.x + caveOpening.width) {
+        player.y = caveOpening.y - player.height;
+      } else {
+        // If player goes through the cave opening, move them back and reposition the opening
+        player.y = canvas.height / 2;
+        caveOpening.x = Math.random() * (canvas.width - 150) + 50;
+      }
+    }
   }
 
   window.addEventListener('keydown', function(e) {
@@ -55,6 +83,7 @@
   });
 
   window.addEventListener('keyup', function(e) {
+    console.log('key');
     switch(e.key) {
       case 'ArrowUp': player.moveUp = false; break;
       case 'ArrowDown': player.moveDown = false; break;
@@ -65,6 +94,7 @@
 
   function gameLoop() {
     context.clearRect(0, 0, canvas.width, canvas.height);
+    drawWalls();
     updatePlayerPosition();
     drawPlayer();
     requestAnimationFrame(gameLoop);
