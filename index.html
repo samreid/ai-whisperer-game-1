@@ -1,7 +1,76 @@
+<!DOCTYPE html>
 <html>
+<head>
+  <title>Swords of Shadows</title>
+  <style>
+    body { background: #000; }
+    #gameCanvas { background: #fff; }
+  </style>
+</head>
 <body>
-<h1>
-  Hello World!!
-</h1>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+
+<script>
+  var canvas = document.getElementById('gameCanvas');
+  var context = canvas.getContext('2d');
+
+  var player = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    width: 50,
+    height: 50,
+    color: 'red',
+    speed: 5,
+    moveLeft: false,
+    moveRight: false,
+    moveUp: false,
+    moveDown: false,
+  };
+
+  function drawPlayer() {
+    context.fillStyle = player.color;
+    context.fillRect(player.x, player.y, player.width, player.height);
+  }
+
+  function updatePlayerPosition() {
+    if (player.moveLeft) player.x -= player.speed;
+    if (player.moveRight) player.x += player.speed;
+    if (player.moveUp) player.y -= player.speed;
+    if (player.moveDown) player.y += player.speed;
+
+    // Check for canvas boundaries
+    if (player.x < 0) player.x = 0;
+    if (player.y < 0) player.y = 0;
+    if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+    if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+  }
+
+  window.addEventListener('keydown', function(e) {
+    switch(e.key) {
+      case 'ArrowUp': player.moveUp = true; break;
+      case 'ArrowDown': player.moveDown = true; break;
+      case 'ArrowLeft': player.moveLeft = true; break;
+      case 'ArrowRight': player.moveRight = true; break;
+    }
+  });
+
+  window.addEventListener('keyup', function(e) {
+    switch(e.key) {
+      case 'ArrowUp': player.moveUp = false; break;
+      case 'ArrowDown': player.moveDown = false; break;
+      case 'ArrowLeft': player.moveLeft = false; break;
+      case 'ArrowRight': player.moveRight = false; break;
+    }
+  });
+
+  function gameLoop() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    updatePlayerPosition();
+    drawPlayer();
+    requestAnimationFrame(gameLoop);
+  }
+
+  gameLoop();
+</script>
 </body>
 </html>
