@@ -83,7 +83,7 @@
     context.fillRect(0, 0, canvas.width, 20);
     context.fillRect(0, canvas.height - 20, canvas.width, 20);
     context.fillRect(0, 0, 20, canvas.height);
-    context.fillRect(canvas.width - 20, 0, 20, canvas.height - 60);
+    context.fillRect(canvas.width - 20, 0, 20, canvas.height);
   }
 
   function drawScore() {
@@ -158,6 +158,9 @@
   });
 
   function updatePlayerPosition() {
+    var oldX = player.x;
+    var oldY = player.y;
+
     if (keys[37]) {
       player.dx = -player.speed;
       player.direction = 'left';
@@ -180,6 +183,12 @@
 
     player.x += player.dx;
     player.y += player.dy;
+
+    // Wall collision
+    if (player.x < 20 || player.y < 20 || player.x + player.width > canvas.width - 20 || player.y + player.height > canvas.height - 20) {
+      player.x = oldX;
+      player.y = oldY;
+    }
 
     if (checkCollision(player, enemy) && !isAttacking) {
       isGameOver = true;
