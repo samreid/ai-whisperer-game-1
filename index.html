@@ -3,34 +3,41 @@
 <head>
   <title>Swords of Shadows</title>
   <style>
-    body { background: #000; }
-    #gameCanvas { background: #fff; }
+    body {
+      background: #000;
+    }
+
+    #gameCanvas {
+      background: #fff;
+    }
   </style>
 </head>
 <body>
 <canvas id="gameCanvas" width="800" height="600"></canvas>
 
 <script>
-  var canvas = document.getElementById('gameCanvas');
-  var context = canvas.getContext('2d');
+  var canvas = document.getElementById( 'gameCanvas' );
+  var context = canvas.getContext( '2d' );
 
   var player = {
     x: canvas.width / 2,
     y: canvas.height / 2,
-    width: 20,
-    height: 20,
-    color: 'red',
+    width: 60,
+    height: 60,
     speed: 3,
     direction: 'right',
     dx: 0,
-    dy: 0
+    dy: 0,
+    img: new Image()
   };
+  player.img.src = 'player.png'; // Set the image source
 
   var weapon = {
-    width: 50,
-    height: 10,
-    color: 'black'
+    width: 90, // Adjust according to the size of your image
+    height: 30, // Adjust according to the size of your image
+    img: new Image()
   };
+  weapon.img.src = 'sword.png';
 
   var enemy = {
     x: 100,
@@ -49,50 +56,70 @@
   var isAttacking = false;
 
   function drawPlayer() {
-    context.fillStyle = player.color;
-    context.fillRect(player.x, player.y, player.width, player.height);
+    context.drawImage( player.img, player.x, player.y, player.width, player.height );
   }
 
   function drawWeapon() {
     if (isAttacking) {
-      context.fillStyle = weapon.color;
+      var weaponX, weaponY, rotation;
+      var scale = 0.05;  // Change this to scale the size of the sword
+
+      // Calculate the new width and height based on the original aspect ratio
+      var weaponWidth = weapon.img.width * scale;
+      var weaponHeight = weapon.img.height * scale;
+
       switch(player.direction) {
         case 'left':
-          context.fillRect(player.x - weapon.width, player.y, weapon.width, weapon.height);
+          weaponX = player.x - weaponWidth;
+          weaponY = player.y;
+          rotation = 90;
           break;
         case 'right':
-          context.fillRect(player.x + player.width, player.y, weapon.width, weapon.height);
+          weaponX = player.x + player.width;
+          weaponY = player.y;
+          rotation = -90;
           break;
         case 'up':
-          context.fillRect(player.x, player.y - weapon.width, weapon.height, weapon.width);
+          weaponX = player.x;
+          weaponY = player.y - weaponHeight;
+          rotation = 180;
           break;
         case 'down':
-          context.fillRect(player.x, player.y + player.width, weapon.height, weapon.width);
+          weaponX = player.x;
+          weaponY = player.y + player.height;
+          rotation = 0;
           break;
       }
+
+      context.save();
+      context.translate(weaponX + weaponWidth / 2, weaponY + weaponHeight / 2);
+      context.rotate(rotation * Math.PI / 180);
+      context.drawImage(weapon.img, -weaponWidth / 2, -weaponHeight / 2, weaponWidth, weaponHeight);
+      context.restore();
     }
   }
 
+
   function drawEnemy() {
     context.fillStyle = enemy.color;
-    context.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+    context.fillRect( enemy.x, enemy.y, enemy.width, enemy.height );
   }
 
   function drawWalls() {
     context.fillStyle = '#808080';
-    context.fillRect(0, 0, canvas.width, 20);
-    context.fillRect(0, canvas.height - 20, canvas.width, 20);
-    context.fillRect(0, 0, 20, canvas.height);
-    context.fillRect(canvas.width - 20, 0, 20, canvas.height);
+    context.fillRect( 0, 0, canvas.width, 20 );
+    context.fillRect( 0, canvas.height - 20, canvas.width, 20 );
+    context.fillRect( 0, 0, 20, canvas.height );
+    context.fillRect( canvas.width - 20, 0, 20, canvas.height );
   }
 
   function drawScore() {
     context.font = "20px Arial";
     context.fillStyle = 'black';
-    context.fillText("Score: " + score, 10, 30);
+    context.fillText( "Score: " + score, 10, 30 );
   }
 
-  function checkCollision(rect1, rect2) {
+  function checkCollision( rect1, rect2 ) {
     return rect1.x < rect2.x + rect2.width &&
            rect1.x + rect1.width > rect2.x &&
            rect1.y < rect2.y + rect2.height &&
@@ -101,32 +128,31 @@
 
   function getWeaponDimensions() {
     var weaponX, weaponY, weaponWidth, weaponHeight;
+    var scale = 0.05;
+
+    // Calculate the new width and height based on the original aspect ratio
+    weaponWidth = weapon.img.width * scale;
+    weaponHeight = weapon.img.height * scale;
+
     switch(player.direction) {
       case 'left':
-        weaponX = player.x - weapon.width;
+        weaponX = player.x - weaponWidth;
         weaponY = player.y;
-        weaponWidth = weapon.width;
-        weaponHeight = weapon.height;
         break;
       case 'right':
         weaponX = player.x + player.width;
         weaponY = player.y;
-        weaponWidth = weapon.width;
-        weaponHeight = weapon.height;
         break;
       case 'up':
         weaponX = player.x;
-        weaponY = player.y - weapon.width;
-        weaponWidth = weapon.height;
-        weaponHeight = weapon.width;
+        weaponY = player.y - weaponHeight;
         break;
       case 'down':
         weaponX = player.x;
-        weaponY = player.y + player.width;
-        weaponWidth = weapon.height;
-        weaponHeight = weapon.width;
+        weaponY = player.y + player.height;
         break;
     }
+
     return {
       x: weaponX,
       y: weaponY,
@@ -135,49 +161,54 @@
     };
   }
 
-  window.addEventListener('keydown', function(e) {
-    keys[e.keyCode] = true;
 
-    switch(e.keyCode) {
+  window.addEventListener( 'keydown', function( e ) {
+    keys[ e.keyCode ] = true;
+
+    switch( e.keyCode ) {
       case 32: // Spacebar
         isAttacking = true;
-        if (checkCollision(getWeaponDimensions(), enemy)) {
+        if ( checkCollision( getWeaponDimensions(), enemy ) ) {
           score++;
-          enemy.x = Math.random() * (canvas.width - 100) + 50;
-          enemy.y = Math.random() * (canvas.height - 100) + 50;
+          enemy.x = Math.random() * ( canvas.width - 100 ) + 50;
+          enemy.y = Math.random() * ( canvas.height - 100 ) + 50;
         }
         break;
     }
-  });
+  } );
 
-  window.addEventListener('keyup', function(e) {
-    delete keys[e.keyCode];
-    if (e.keyCode === 32) { // Space bar
+  window.addEventListener( 'keyup', function( e ) {
+    delete keys[ e.keyCode ];
+    if ( e.keyCode === 32 ) { // Space bar
       isAttacking = false;
     }
-  });
+  } );
 
   function updatePlayerPosition() {
     var oldX = player.x;
     var oldY = player.y;
 
-    if (keys[37]) {
+    if ( keys[ 37 ] ) {
       player.dx = -player.speed;
       player.direction = 'left';
-    } else if (keys[39]) {
+    }
+    else if ( keys[ 39 ] ) {
       player.dx = player.speed;
       player.direction = 'right';
-    } else {
+    }
+    else {
       player.dx = 0;
     }
 
-    if (keys[38]) {
+    if ( keys[ 38 ] ) {
       player.dy = -player.speed;
       player.direction = 'up';
-    } else if (keys[40]) {
+    }
+    else if ( keys[ 40 ] ) {
       player.dy = player.speed;
       player.direction = 'down';
-    } else {
+    }
+    else {
       player.dy = 0;
     }
 
@@ -185,14 +216,14 @@
     player.y += player.dy;
 
     // Wall collision
-    if (player.x < 20 || player.y < 20 || player.x + player.width > canvas.width - 20 || player.y + player.height > canvas.height - 20) {
+    if ( player.x < 20 || player.y < 20 || player.x + player.width > canvas.width - 20 || player.y + player.height > canvas.height - 20 ) {
       player.x = oldX;
       player.y = oldY;
     }
 
-    if (checkCollision(player, enemy) && !isAttacking) {
+    if ( checkCollision( player, enemy ) && !isAttacking ) {
       isGameOver = true;
-      alert('Game Over');
+      alert( 'Game Over' );
       location.reload();
     }
   }
@@ -200,9 +231,9 @@
   function updateEnemyPosition() {
     var dx = player.x - enemy.x;
     var dy = player.y - enemy.y;
-    var dist = Math.sqrt(dx*dx + dy*dy);
+    var dist = Math.sqrt( dx * dx + dy * dy );
 
-    if (dist) {
+    if ( dist ) {
       dx /= dist;  // Normalize
       dy /= dist;  // Normalize
 
@@ -212,8 +243,10 @@
   }
 
   function gameLoop() {
-    if(isGameOver) return;
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    if ( isGameOver ) {
+      return;
+    }
+    context.clearRect( 0, 0, canvas.width, canvas.height );
     drawWalls();
     drawScore();
     updatePlayerPosition();
@@ -221,7 +254,7 @@
     drawPlayer();
     drawWeapon();
     drawEnemy();
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame( gameLoop );
   }
 
   gameLoop();
